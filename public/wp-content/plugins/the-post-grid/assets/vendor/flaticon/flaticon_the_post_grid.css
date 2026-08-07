@@ -1,0 +1,93 @@
+@font-face {
+    font-family: "flaticon_the_post_grid";
+    src: url("flaticon_the_post_grid.ttf@dd949169929eab44f4d2133b01c9e438") format("truetype"),
+url("flaticon_the_post_grid.woff@dd949169929eab44f4d2133b01c9e438") format("woff"),
+url("flaticon_the_post_grid.woff2@dd949169929eab44f4d2133b01c9e438") format("woff2"),
+url("flaticon_the_post_grid.eot@dd949169929eab44f4d2133b01c9e438") format("embedded-opentype"),
+url("flaticon_the_post_grid.svg@dd949169929eab44f4d2133b01c9e438") format("svg");
+}
+
+[class^="tpg-flaticon-"]:before,
+[class*=" tpg-flaticon-"]:before {
+    font-family: flaticon_the_post_grid !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.tpg-flaticon-user:before {
+    content: "\f101";
+}
+.tpg-flaticon-calendar:before {
+    content: "\f102";
+}
+.tpg-flaticon-tag:before {
+    content: "\f103";
+}
+.tpg-flaticon-folder:before {
+    content: "\f104";
+}
+.tpg-flaticon-message:before {
+    content: "\f105";
+}
+.tpg-flaticon-chat:before {
+    content: "\f106";
+}
+.tpg-flaticon-visible:before {
+    content: "\f107";
+}
+.tpg-flaticon-left:before {
+    content: "\f108";
+}
+.tpg-flaticon-right:before {
+    content: "\f109";
+}
+.tpg-flaticon-right-arrow:before {
+    content: "\f10a";
+}
+.tpg-flaticon-right-1:before {
+    content: "\f10b";
+}
+.tpg-flaticon-left-arrow:before {
+    content: "\f10c";
+}
+.tpg-flaticon-pinterest:before {
+    content: "\f10d";
+}
+.tpg-flaticon-mail:before {
+    content: "\f10e";
+}
+.tpg-flaticon-email:before {
+    content: "\f10f";
+}
+.tpg-flaticon-add:before {
+    content: "\f110";
+}
+.tpg-flaticon-plus:before {
+    content: "\f111";
+}
+.tpg-flaticon-facebook:before {
+    content: "\f112";
+}
+.tpg-flaticon-twitter-x:before {
+    content: "\f113";
+}
+.tpg-flaticon-instagram:before {
+    content: "\f114";
+}
+.tpg-flaticon-youtube:before {
+    content: "\f115";
+}
+.tpg-flaticon-google-plus:before {
+    content: "\f116";
+}
+.tpg-flaticon-reddit:before {
+    content: "\f117";
+}
+.tpg-flaticon-linkedin:before {
+    content: "\f118";
+}
