@@ -34,15 +34,19 @@ const CONTACT_REWRITES = [
 // but no visitor is ever routed back to the old owner (their live site or their
 // other agency domain). Footer "location" line shows international coverage; the
 // contact-page address is just the city.
-const LOCATION = 'Chandigarh, India · UAE · USA · Russia · Europe';
 const INFO_REWRITES = [
   // Repoint the old owner's domains at ours. Runs AFTER the host rewrite, so the
   // only bare "dentistseoservice.com" left here are in brand text
   // (<title>/og:site_name/schema), not asset URLs.
   ['dentistseoservice.com', NEW_HOST],
   ['dentalmastermedia.com', NEW_HOST],
-  // Addresses.
-  ['E-203, Phase 8B, Industrial Area, Sector 74, Punjab, India', LOCATION],
+  // Footer office boxes: our real HQ is Chandigarh; the old owner's US/UAE
+  // street addresses are replaced with city/country only so we keep the
+  // international look without publishing (or leaking mail to) their offices.
+  ['E-203, Phase 8B, Industrial Area, Sector 74, Punjab, India', 'Chandigarh, India'],
+  ['4120 Quakerbridge Rd, Lawrence Township NJ, USA', 'Serving clients across the USA'],
+  ['704, B8 Building, Al Barsha 1, Dubai, UAE', 'Dubai, UAE'],
+  // Contact-page address line.
   ['Plot No 337, Industrial Area, Phase 2, Chandigarh 160002', 'Chandigarh'],
 ];
 
