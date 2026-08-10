@@ -31,18 +31,41 @@ served directly.
 The original site is WordPress (Elementor + Hello theme + CF7) on Hostinger.
 `scripts/build-pages.mjs` takes raw HTML exports of each page and:
 
-- rewrites every URL from `dentistseoservice.com` → `dentistseo.dpdns.org`
-  (emails keep the old domain — the `//` prefix match protects them)
+- rewrites every URL from `dentistseoservice.com` → `dentistseo.dpdns.org`,
+  and repoints `dentalmastermedia.com` (the old owner's other site) at ours, so
+  no visitor is ever routed back to the original owner
+- updates contact info: phone `+91 75085 83782`, email `info@riocloudsolutions.com`
+- rewrites the office addresses (Chandigarh HQ; USA/UAE shown as city/country
+  only — the original owner's real street addresses are removed)
 - strips `?ver=` cache-busters so URLs match the renamed on-disk assets
 - removes WordPress runtime endpoints (REST/oEmbed/RSD/feeds/emoji loader,
   Hostinger Reach newsletter plugin)
 - hides blog comment forms (`wp-comments-post.php` doesn't exist here)
-- repoints the Contact Form 7 form at **FormSubmit**
-  (`https://formsubmit.co/contact@dentistseoservice.com`)
+- points the Contact Form 7 form at **`/api/lead`** and injects a honeypot
+- injects a floating WhatsApp / Instagram / LinkedIn bar on every page
 
-**FormSubmit needs one-time activation**: the first submission emails an
-activation link to contact@dentistseoservice.com — the client must click it
-once, after which submissions are delivered normally.
+The original copy, branding and `robots` meta are kept **as-is** — this is a
+content-identical clone of the original, only the contact details and outbound
+domains change.
+
+## Contact form → email (SMTP)
+
+`public/_worker.js` is a Pages advanced-mode worker. `POST /api/lead` relays the
+form to `LEAD_TO` over **Gmail SMTP** (`smtp.gmail.com:465`, `cloudflare:sockets`);
+every other request passes through to the static assets via `env.ASSETS`.
+
+Credentials are **Pages secrets** (never in the repo), set with
+`wrangler pages secret put`:
+
+- `GMAIL_USER` — the authenticating Gmail address
+- `GMAIL_PASS` — its 16-char app password (spaces are stripped in code)
+- `LEAD_TO`    — `info@riocloudsolutions.com`
+
+`wrangler.toml` pins `compatibility_date` recent enough for the socket API — the
+worker won't send without it. Test after deploy:
+`curl -X POST https://dentistseo.dpdns.org/api/lead --data-urlencode "your-email=test@example.com" ...`
+→ HTTP 200 + thank-you page means SMTP succeeded; 502 means it failed (bad creds
+/ missing secret).
 
 ## Updating content
 
