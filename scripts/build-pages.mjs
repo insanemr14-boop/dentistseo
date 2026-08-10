@@ -112,15 +112,13 @@ for (const page of pages) {
     html = html.replace('</head>', '<style>#comments.comments-area{display:none}</style></head>');
   }
 
-  // 4. Contact Form 7 cannot POST to a static host. Repoint the form at
-  //    FormSubmit (delivers to the practice inbox) and drop the CF7 JS that
-  //    would otherwise hijack the submit with a dead REST call.
-  html = html.replace(/<form action="[^"]*#wpcf7[^"]*"/g, () =>
-    `<form action="https://formsubmit.co/${CONTACT_EMAIL}"`);
-  html = html.replace(/(<form action="https:\/\/formsubmit\.co\/[^"]*"[^>]*method="post")([^>]*)>/g,
-    (m, head, rest) => `${head}${rest.replace(' novalidate="novalidate"', '')}>` +
-      `<input type="hidden" name="_subject" value="New enquiry from ${NEW_HOST}">` +
-      `<input type="hidden" name="_template" value="table">`);
+  // 4. Contact Form 7 cannot POST to a static host. Point every CF7 form at our
+  //    own /api/lead endpoint (handled by public/_worker.js, which emails the
+  //    submission via Gmail SMTP) and drop the CF7 JS that would otherwise
+  //    hijack the submit with a dead REST call. A honeypot field catches bots.
+  html = html.replace(/<form action="[^"]*#wpcf7[^"]*"([^>]*)>/g,
+    (m, rest) => `<form action="/api/lead"${rest.replace(' novalidate="novalidate"', '')}>` +
+      `<input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">`);
   html = html
     .replace(/<script[^>]+contact-form-7[^>]*><\/script>\s*/g, '')
     .replace(/<script[^>]*>\s*var wpcf7[^<]*<\/script>\s*/g, '');

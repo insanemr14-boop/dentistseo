@@ -1,0 +1,6 @@
+name = "dentistseo"
+pages_build_output_dir = "public"
+# Recent date is required for the cloudflare:sockets API used by _worker.js
+# to talk SMTP to Gmail.
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]

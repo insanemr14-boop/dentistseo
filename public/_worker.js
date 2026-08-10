@@ -1,0 +1,124 @@
+// Cloudflare Pages advanced-mode worker.
+// - POST /api/lead  -> emails the contact-form submission to LEAD_TO via Gmail SMTP
+// - everything else -> served from the static assets (env.ASSETS)
+//
+// Secrets (set with `wrangler pages secret put` — never commit them):
+//   GMAIL_USER  the Gmail address that authenticates to SMTP
+//   GMAIL_PASS  its 16-char app password (spaces are ignored)
+//   LEAD_TO     where leads are delivered (info@riocloudsolutions.com)
+
+import { connect } from 'cloudflare:sockets';
+
+const CRLF = '\r\n';
+
+async function smtpSend(env, { subject, body, replyTo }) {
+  const user = env.GMAIL_USER;
+  const pass = (env.GMAIL_PASS || '').replace(/\s+/g, ''); // app passwords display with spaces
+  const to = env.LEAD_TO || 'info@riocloudsolutions.com';
+  if (!user || !pass) throw new Error('SMTP not configured');
+
+  const socket = connect(
+    { hostname: 'smtp.gmail.com', port: 465 },
+    { secureTransport: 'on', allowHalfOpen: false },
+  );
+  const writer = socket.writable.getWriter();
+  const reader = socket.readable.getReader();
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+  let buf = '';
+
+  async function expect(codes) {
+    while (true) {
+      const lines = buf.split(CRLF).filter(Boolean);
+      const last = lines[lines.length - 1] || '';
+      if (/^\d{3} /.test(last)) {
+        const code = last.slice(0, 3);
+        const resp = buf;
+        buf = '';
+        if (!codes.includes(code)) throw new Error(`SMTP ${code}: ${resp.trim()}`);
+        return;
+      }
+      const { value, done } = await reader.read();
+      if (done) throw new Error(`SMTP closed early: ${buf.trim()}`);
+      buf += dec.decode(value);
+    }
+  }
+  const cmd = async (line, codes) => {
+    await writer.write(enc.encode(line + CRLF));
+    await expect(codes);
+  };
+
+  try {
+    await expect(['220']);
+    await cmd('EHLO dentistseo.dpdns.org', ['250']);
+    await cmd('AUTH LOGIN', ['334']);
+    await cmd(btoa(user), ['334']);
+    await cmd(btoa(pass), ['235']);
+    await cmd(`MAIL FROM:<${user}>`, ['250']);
+    await cmd(`RCPT TO:<${to}>`, ['250', '251']);
+    await cmd('DATA', ['354']);
+    const headers = [
+      `From: DentalSEO Leads <${user}>`,
+      `To: ${to}`,
+      replyTo ? `Reply-To: ${replyTo}` : null,
+      `Subject: ${subject}`,
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=utf-8',
+    ].filter(Boolean).join(CRLF);
+    // Normalise newlines and dot-stuff so a line that is just "." can't end DATA early.
+    const safe = body.replace(/\r?\n/g, CRLF).replace(/\r\n\./g, CRLF + '..');
+    await cmd(`${headers}${CRLF}${CRLF}${safe}${CRLF}.`, ['250']);
+    await cmd('QUIT', ['221']).catch(() => {});
+  } finally {
+    try { await writer.close(); } catch {}
+  }
+}
+
+const THANKS = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Thank you</title>
+<style>body{margin:0;font-family:Roboto,Arial,sans-serif;background:#f7fafc;color:#1a2b4a;display:flex;
+align-items:center;justify-content:center;min-height:100vh;text-align:center}.b{padding:2rem;max-width:520px}
+h1{color:#0a6ebd;margin:.2rem 0}a{display:inline-block;margin-top:1.2rem;padding:.75rem 1.75rem;background:#0a6ebd;
+color:#fff;text-decoration:none;border-radius:6px;font-weight:600}</style></head>
+<body><div class="b"><h1>Thank you!</h1><p>Your enquiry has reached our team. We'll get back to you shortly.</p>
+<a href="/">Back to home</a></div></body></html>`;
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    if (url.pathname === '/api/lead') {
+      if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
+      const form = await request.formData();
+      // Honeypot: bots fill hidden fields; pretend success and send nothing.
+      if (form.get('_gotcha') || form.get('website')) {
+        return new Response(THANKS, { headers: { 'content-type': 'text/html' } });
+      }
+      const fields = {};
+      for (const [k, v] of form.entries()) {
+        if (!k.startsWith('_') && k !== 'website' && typeof v === 'string' && v.trim()) fields[k] = v.trim();
+      }
+      const pick = (...keys) => keys.map((k) => fields[k]).find(Boolean) || '';
+      const name = pick('your-name', 'name', 'Name', 'fullname');
+      const replyTo = pick('your-email', 'email', 'Email', 'your-mail');
+      const lines = Object.entries(fields).map(([k, v]) => `${k}: ${v}`).join('\n');
+      const body =
+        `New enquiry from https://dentistseo.dpdns.org${CRLF}` +
+        `Page: ${request.headers.get('referer') || '(unknown)'}${CRLF}${CRLF}` +
+        `${lines}${CRLF}`;
+      try {
+        await smtpSend(env, {
+          subject: `New dental SEO lead${name ? ' — ' + name : ''}`,
+          body,
+          replyTo,
+        });
+      } catch (e) {
+        return new Response(
+          `Sorry, we couldn't send that right now. Please email info@riocloudsolutions.com or WhatsApp +91 75085 83782.\n\n(${e.message})`,
+          { status: 502, headers: { 'content-type': 'text/plain; charset=utf-8' } },
+        );
+      }
+      return new Response(THANKS, { headers: { 'content-type': 'text/html' } });
+    }
+    return env.ASSETS.fetch(request);
+  },
+};
