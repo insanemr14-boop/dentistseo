@@ -94,7 +94,10 @@ for (const page of pages) {
     .replace(/<link[^>]+rel=["']EditURI["'][^>]*>\s*/g, '')
     .replace(/<link[^>]+rel=["']shortlink["'][^>]*>\s*/g, '')
     .replace(/<link[^>]+rel=["']alternate["'][^>]+wp-json[^>]*>\s*/g, '')
-    .replace(/<link[^>]+rel=["']pingback["'][^>]*>\s*/g, '');
+    .replace(/<link[^>]+rel=["']pingback["'][^>]*>\s*/g, '')
+    // The WordPress original is noindex; this site is indexable on its own domain.
+    .replace(/<meta name="robots" content="noindex,\s*nofollow([^"]*)"/g,
+             '<meta name="robots" content="index, follow$1"');
 
   // 3b. Emoji loader, RSS feed autodiscovery, and the Hostinger Reach
   //     newsletter plugin all depend on WordPress endpoints — drop them.

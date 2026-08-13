@@ -83,15 +83,26 @@ color:#fff;text-decoration:none;border-radius:6px;font-weight:600}</style></head
 <body><div class="b"><h1>Thank you!</h1><p>Your enquiry has reached our team. We'll get back to you shortly.</p>
 <a href="/">Back to home</a></div></body></html>`;
 
+// Public lead endpoint is shared by every RioCloud site, so it must answer
+// cross-origin. No credentials are used, so '*' is safe; the honeypot below
+// (not CORS) is what stops bots — CORS never stops a direct POST anyway.
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Max-Age': '86400',
+};
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/api/lead') {
-      if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405 });
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+      if (request.method !== 'POST') return new Response('Method Not Allowed', { status: 405, headers: CORS });
       const form = await request.formData();
       // Honeypot: bots fill hidden fields; pretend success and send nothing.
       if (form.get('_gotcha') || form.get('website')) {
-        return new Response(THANKS, { headers: { 'content-type': 'text/html' } });
+        return new Response(THANKS, { headers: { ...CORS, 'content-type': 'text/html' } });
       }
       const fields = {};
       for (const [k, v] of form.entries()) {
@@ -100,24 +111,27 @@ export default {
       const pick = (...keys) => keys.map((k) => fields[k]).find(Boolean) || '';
       const name = pick('your-name', 'name', 'Name', 'fullname');
       const replyTo = pick('your-email', 'email', 'Email', 'your-mail');
+      const origin = request.headers.get('origin') || '';
+      const site = pick('site') || origin || 'https://dentistseo.dpdns.org';
+      let host = site; try { host = new URL(site).hostname; } catch {}
       const lines = Object.entries(fields).map(([k, v]) => `${k}: ${v}`).join('\n');
       const body =
-        `New enquiry from https://dentistseo.dpdns.org${CRLF}` +
+        `New enquiry from ${site}${CRLF}` +
         `Page: ${request.headers.get('referer') || '(unknown)'}${CRLF}${CRLF}` +
         `${lines}${CRLF}`;
       try {
         await smtpSend(env, {
-          subject: `New dental SEO lead${name ? ' — ' + name : ''}`,
+          subject: `New lead — ${host}${name ? ' — ' + name : ''}`,
           body,
           replyTo,
         });
       } catch (e) {
         return new Response(
           `Sorry, we couldn't send that right now. Please email info@riocloudsolutions.com or WhatsApp +91 75085 83782.\n\n(${e.message})`,
-          { status: 502, headers: { 'content-type': 'text/plain; charset=utf-8' } },
+          { status: 502, headers: { ...CORS, 'content-type': 'text/plain; charset=utf-8' } },
         );
       }
-      return new Response(THANKS, { headers: { 'content-type': 'text/html' } });
+      return new Response(THANKS, { headers: { ...CORS, 'content-type': 'text/html' } });
     }
     return env.ASSETS.fetch(request);
   },
