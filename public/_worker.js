@@ -131,6 +131,10 @@ export default {
           { status: 502, headers: { ...CORS, 'content-type': 'text/plain; charset=utf-8' } },
         );
       }
+      const back = pick('redirect');
+      if (back && /^https:\/\//.test(back)) {
+        return new Response(null, { status: 303, headers: { ...CORS, location: back } });
+      }
       return new Response(THANKS, { headers: { ...CORS, 'content-type': 'text/html' } });
     }
     return env.ASSETS.fetch(request);
