@@ -114,6 +114,11 @@ export default {
       const origin = request.headers.get('origin') || '';
       const site = pick('site') || origin || 'https://dentistseo.dpdns.org';
       let host = site; try { host = new URL(site).hostname; } catch {}
+      // Forms send a `subject` describing the offer and the article that
+      // produced the lead. Surfacing it in the mail subject is what makes the
+      // inbox scannable — otherwise every lead across four sites arrives as
+      // the same line and you have to open each one to know what it is.
+      const tag = pick('subject');
       const lines = Object.entries(fields).map(([k, v]) => `${k}: ${v}`).join('\n');
       const body =
         `New enquiry from ${site}${CRLF}` +
@@ -121,7 +126,7 @@ export default {
         `${lines}${CRLF}`;
       try {
         await smtpSend(env, {
-          subject: `New lead — ${host}${name ? ' — ' + name : ''}`,
+          subject: `New lead — ${host}${name ? ' — ' + name : ''}${tag ? ' — ' + tag : ''}`,
           body,
           replyTo,
         });
