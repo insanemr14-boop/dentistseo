@@ -9,4 +9,16 @@
   <url><loc>https://dentistseo.dpdns.org/what-user-experience-signals-matter-most-for-dental-seo/</loc><lastmod>2026-08-13</lastmod><priority>0.8</priority></url>
   <url><loc>https://dentistseo.dpdns.org/why-is-internal-linking-often-ignored-in-seo-for-dentists/</loc><lastmod>2026-08-13</lastmod><priority>0.8</priority></url>
   <url><loc>https://dentistseo.dpdns.org/why-is-semantic-search-changing-seo-for-dentists/</loc><lastmod>2026-08-13</lastmod><priority>0.8</priority></url>
+  <url>
+    <loc>https://dentistseo.dpdns.org/privacy-policy/</loc>
+    <lastmod>2026-08-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://dentistseo.dpdns.org/terms/</loc>
+    <lastmod>2026-08-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
 </urlset>
