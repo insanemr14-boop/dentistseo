@@ -87,3 +87,7 @@ For small text edits, edit `public/**/index.html` directly.
 - Blog comments are hidden (static host, no comment backend).
 - The Hostinger Reach newsletter block was removed (dead API).
 - Popup Maker popups still render, but their analytics beacons 404 silently.
+
+## Contact details policy
+
+No phone number or WhatsApp link is shown anywhere on the site (removed 2026-11-13 at the owner's request). Visitors contact us only through the forms, which post to `/api/lead` and are emailed to `info@riocloudsolutions.com`. `scripts/build-pages.mjs` still injects a phone number and a WhatsApp button, so strip them again after any rebuild from a fresh WordPress export.

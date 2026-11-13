@@ -132,7 +132,7 @@ export default {
         });
       } catch (e) {
         return new Response(
-          `Sorry, we couldn't send that right now. Please email info@riocloudsolutions.com or WhatsApp +91 75085 83782.\n\n(${e.message})`,
+          `Sorry, we couldn't send that right now. Please email info@riocloudsolutions.com.\n\n(${e.message})`,
           { status: 502, headers: { ...CORS, 'content-type': 'text/plain; charset=utf-8' } },
         );
       }
